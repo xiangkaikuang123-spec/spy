@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Who Is The Spy? · 谁短裤穿太高</title>
+<style>
+:root{--bg:#0b1020;--card:#151d35;--tx:#edf2ff;--mu:#9fabc9;--ac:#7c5cff;--ac2:#21d4a5;--bd:#293552;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root[data-theme=light]{--bg:#f2f4fb;--card:#fff;--tx:#141a2e;--mu:#5d6885;--bd:#d8dded}
+@media(prefers-color-scheme:light){:root:not([data-theme=dark]){--bg:#f2f4fb;--card:#fff;--tx:#141a2e;--mu:#5d6885;--bd:#d8dded}}
+*{box-sizing:inherit}body{margin:0;background:radial-gradient(circle at 20% 0,#241d52,transparent 50%),var(--bg);color:var(--tx);font-family:"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif;min-height:100vh}
+#app{max-width:520px;margin:auto;padding:22px 18px 40px;min-height:100vh;display:flex;flex-direction:column;gap:14px;animation:in .25s}
+@keyframes in{from{opacity:0;transform:translateY(10px)}}
+@media(prefers-reduced-motion:reduce){#app{animation:none}}
+h1{font-size:40px;margin:8px 0 0;text-align:center}h2{margin:0}.sub{color:var(--mu);text-align:center}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:20px;padding:18px}
+button{font:inherit;color:var(--tx);cursor:pointer;border:1px solid var(--bd);background:var(--card);border-radius:16px;padding:15px;min-height:52px;transition:transform .1s}
+button:active{transform:scale(.96)}button:focus-visible{outline:3px solid var(--ac2)}
+.p{background:linear-gradient(135deg,var(--ac),#5b8cff);border:0;color:#fff;font-weight:700;font-size:18px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 0}
+.st{display:flex;align-items:center;gap:14px}.st button{width:52px;font-size:24px;padding:0}.st b{font-size:26px;min-width:30px;text-align:center}
+.chips{display:flex;gap:8px;flex-wrap:wrap}.chips button{padding:8px 14px;min-height:40px;border-radius:99px}.chips .on{background:var(--ac);color:#fff;border-color:var(--ac)}
+input{font:inherit;width:100%;padding:14px;border-radius:14px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);margin:6px 0}
+.big{font-size:58px;font-weight:800;text-align:center;margin:14px 0}.c{text-align:center}.mu{color:var(--mu)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid button{font-size:18px;min-height:74px}.grid .sel{border-color:var(--ac2);box-shadow:0 0 0 2px var(--ac2)}
+.err{color:#ff7a8a;text-align:center;min-height:22px}.bar{height:10px;border-radius:9px;background:var(--bd);overflow:hidden}.bar i{display:block;height:100%;background:var(--ac2);transition:width 1s linear}
+.role{border-radius:24px;padding:28px 18px;text-align:center;animation:flip .4s}@keyframes flip{from{transform:rotateY(90deg)}}
+.r-civ{background:linear-gradient(135deg,#1b7f6a,#21d4a5);color:#062}.r-spy{background:linear-gradient(135deg,#7c1d3a,#ff5c7a);color:#fff}.r-wb{background:#e8ecf7;color:#222}
+.ft{margin-top:auto}
+</style></head><body><div id="app"></div>
+<script>
+// ---- 词库 (类别, 难度, 词对) ----
+const B=[];[
+["饮料","e","可乐/汽水 奶茶/咖啡 果汁/汽水 豆浆/牛奶 绿茶/红茶 啤酒/白酒"],["饮料","m","咖啡/奶茶 柠檬茶/橙汁 酸奶/牛奶 冰美式/热美式"],["饮料","h","拿铁/卡布奇诺 美式/浓缩 雪碧/七喜 珍珠奶茶/波霸奶茶"],
+["美食","e","火锅/烧烤 饺子/包子 面条/米饭 披萨/汉堡 寿司/饭团 炒饭/炒面"],["美食","m","麻辣烫/火锅 馄饨/饺子 煎饼/烧饼 米线/河粉 牛排/猪排"],["美食","h","汤圆/元宵 肉夹馍/汉堡 麻辣烫/冒菜 生煎/小笼包"],
+["甜点","e","蛋糕/面包 冰淇淋/雪糕 巧克力/糖果 布丁/果冻"],["甜点","m","马卡龙/蛋挞 泡芙/蛋糕 月饼/粽子 奶昔/冰沙"],
+["水果","e","苹果/梨 西瓜/哈密瓜 香蕉/芒果 橘子/橙子 葡萄/提子"],["水果","h","柠檬/青柠 桃子/李子 榴莲/菠萝蜜 草莓/树莓"],
+["动物","e","猫/狗 老虎/狮子 兔子/仓鼠 熊猫/考拉 海豚/鲨鱼 乌鸦/喜鹊"],["动物","m","蝴蝶/蜜蜂 鳄鱼/蜥蜴 企鹅/海鸥 猎豹/豹子 山羊/绵羊"],["动物","h","蜜蜂/黄蜂 青蛙/蟾蜍 鸽子/斑鸠 骆驼/羊驼"],
+["交通","e","飞机/火车 公交车/地铁 自行车/电动车 出租车/网约车 轮船/帆船"],["交通","m","高铁/动车 摩托车/电动车 火车站/机场 直升机/飞机"],
+["数码","e","手机/平板 电脑/游戏机 耳机/音箱 相机/摄像机 键盘/鼠标"],["数码","m","微信/QQ 抖音/快手 淘宝/京东 微博/朋友圈 蓝牙耳机/有线耳机"],["数码","h","笔记本/台式机 充电宝/充电器 WiFi/流量"],
+["运动","e","篮球/足球 羽毛球/网球 游泳/潜水 跑步/散步 乒乓球/台球"],["运动","m","滑雪/滑冰 瑜伽/普拉提 健身/举重 高尔夫/棒球"],["运动","h","马拉松/竞走 拳击/跆拳道 攀岩/爬山"],
+["地点","e","学校/补习班 医院/诊所 超市/便利店 电影院/剧院 海边/游泳池 公园/花园"],["地点","m","酒店/民宿 图书馆/书店 咖啡店/茶馆 银行/邮局 KTV/酒吧"],["地点","h","机场/火车站 游乐场/动物园 美术馆/博物馆"],
+["职业","e","医生/护士 老师/教授 警察/保安 厨师/服务员 老板/经理"],["职业","m","歌手/演员 记者/作家 律师/法官 程序员/设计师"],["职业","h","会计/出纳 导游/司机 主播/明星"],
+["家居","e","冰箱/冷冻柜 洗衣机/烘干机 雨伞/雨衣 枕头/抱枕 筷子/勺子 牙刷/牙膏"],["家居","m","沙发/椅子 台灯/吊灯 空调/风扇 微波炉/烤箱 拖鞋/凉鞋"],["家居","h","洗发水/沐浴露 毛巾/浴巾 杯子/水壶"],
+["自然","e","夏天/春天 太阳/月亮 雨/雪 大海/湖泊 山/丘陵"],["自然","m","彩虹/极光 台风/龙卷风 河流/小溪 沙漠/戈壁"],
+["生活","e","生日/纪念日 春节/中秋 结婚/订婚 朋友/同学 电影/电视剧 小说/漫画"],["生活","m","约会/相亲 旅游/出差 失眠/熬夜 减肥/健身 加班/值班"],["生活","h","感冒/发烧 道歉/解释 暗恋/表白"],
+["服饰","e","牛仔裤/短裤 衬衫/T恤 帽子/围巾 手表/手链 口红/腮红"],["服饰","m","运动鞋/板鞋 西装/风衣 眼镜/墨镜 耳环/项链"],
+["学习","e","作业/考试 语文/英语 铅笔/钢笔 黑板/白板"],["学习","m","小学/幼儿园 大学/高中 老师/家教 课本/字典"],
+["娱乐","e","王者荣耀/和平精英 麻将/扑克 唱歌/跳舞 魔术/杂技"],["娱乐","m","相声/小品 综艺/纪录片 演唱会/音乐节 剧本杀/密室"]
+].forEach(([c,d,s])=>s.split(" ").forEach(p=>{const[a,b]=p.split("/");B.push({c,d,a,b})}));
+
+// ---- 状态 ----
+const $=id=>document.getElementById(id);
+let cfg={vib:true,wbWin:true,wbCiv:false,timer:60,dark:"auto"};
+try{Object.assign(cfg,JSON.parse(localStorage.getItem("cfg")||"{}"))}catch(e){}
+const save=()=>{try{localStorage.setItem("cfg",JSON.stringify(cfg))}catch(e){}};
+let S={screen:"home",n:6,spy:1,wb:0,mode:"random",diff:"mixed",pair:null,cA:"",cB:"",err:"",players:[],i:0,sel:null,timerId:null,left:0,paused:true,round:1,last:null,over:null,showWords:false,secret:null};
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const pool=()=>B.filter(p=>S.diff==="mixed"||p.d===S.diff);
+const roll=()=>{const p={...shuffle(pool().slice())[0]};if(Math.random()<.5)[p.a,p.b]=[p.b,p.a];S.pair=p};
+const go=s=>{S.screen=s;S.err="";render()};
+const vib=()=>cfg.vib&&navigator.vibrate&&navigator.vibrate(60);
+const RN={civilian:"Civilian",spy:"Spy",whiteboard:"Whiteboard"},RZ={civilian:"平民",spy:"卧底",whiteboard:"白板"},RI={civilian:"👤",spy:"🕵️",whiteboard:"⬜"};
+function stepper(k,min,max){return `<div class="st"><button aria-label="Decrease" onclick="adj('${k}',-1,${min},${max})">−</button><b>${S[k]}</b><button aria-label="Increase" onclick="adj('${k}',1,${min},${max})">+</button></div>`}
+function adj(k,d,min,max){S[k]=Math.max(min,Math.min(max,S[k]+d));if(S.spy+S.wb>S.n){if(k==="n"){S.spy=Math.min(S.spy,S.n);S.wb=Math.min(S.wb,S.n-S.spy)}else S[k]-=d}render()}
+const chip=(k,v,l)=>`<button class="${S[k]===v?"on":""}" onclick="S.${k}='${v}';${k==='diff'?'roll();':''}render()">${l}</button>`;
+
+// ---- 开局 ----
+function begin(){
+ let A,Bw;
+ if(S.mode==="custom"){A=S.cA.trim();Bw=S.cB.trim();
+  if(!A)return S.err="Enter a civilian word.",render();
+  if(S.spy>0&&!Bw)return S.err="Enter a spy word.",render();
+  if(S.spy>0&&A===Bw)return S.err="Civilian and spy words must differ. 平民词和卧底词不能相同。",render()}
+ else{roll();A=S.pair.a;Bw=S.pair.b}
+ S.secret={A,B:Bw};
+ const roles=[...Array(S.n-S.spy-S.wb).fill("civilian"),...Array(S.spy).fill("spy"),...Array(S.wb).fill("whiteboard")];
+ shuffle(roles);
+ S.players=roles.map((r,k)=>({id:k+1,name:"玩家 "+(k+1),role:r,out:false}));
+ S.i=0;S.round=1;S.over=null;S.showWords=false;go("pass");
+}
+const wordOf=r=>r==="civilian"?S.secret.A:r==="spy"?S.secret.B:null;
+const alive=()=>S.players.filter(p=>!p.out);
+
+// ---- 计时 ----
+function tick(){if(S.paused)return;S.left--;const t=$("tm"),b=$("tb");if(t)t.textContent=S.left;if(b)b.style.width=(S.left/cfg.timer*100)+"%";
+ if(S.left<=0){clearInterval(S.timerId);S.paused=true;vib();render()}}
+function startTimer(){clearInterval(S.timerId);S.left=cfg.timer;S.paused=false;S.timerId=setInterval(tick,1000);render()}
+
+// ---- 淘汰与胜负 ----
+function reveal(){const p=S.players[S.sel];p.out=true;S.last=p;go("elim")}
+function check(){
+ const a=alive(),spies=a.filter(p=>p.role==="spy").length,civ=a.filter(p=>p.role==="civilian").length,wb=a.filter(p=>p.role==="whiteboard").length;
+ const hadSpy=S.players.some(p=>p.role==="spy");
+ if(S.last.role==="whiteboard"&&cfg.wbWin&&!cfg.wbCiv)return S.over="Whiteboard wins! Voted out, so victory is instant.";
+ if(hadSpy){
+  if(spies===0)return S.over=(wb&&cfg.wbCiv?"Civilians & whiteboard":"Civilians")+" win! All spies are out.";
+  if(spies>=civ+(cfg.wbCiv?0:wb)&&true)return S.over="Spies win! They now match or outnumber everyone else.";
+ }else if(a.length<=2)return S.over="Fun game over: too few players left.";
+ return null}
+function next(){if(check())return go("over");S.round++;S.sel=null;go("discuss")}
+
+// ---- 渲染 ----
+function render(){
+ document.documentElement.dataset.theme=cfg.dark==="auto"?"":cfg.dark;
+ const h=V[S.screen]();$("app").innerHTML=h;$("app").style.animation="none";void $("app").offsetWidth;$("app").style.animation="";
+}
+const back=(s)=>`<button onclick="go('${s}')">← 返回</button>`;
+const V={
+home:()=>`<h1>Who Is The Spy?</h1><div class="sub">谁短裤穿太高<br>One phone. Pass it around.</div>
+<div class="card c" style="margin-top:20px"><div style="font-size:54px">🩳🕵️</div><p>No signup · No internet · Local play<br><span class="mu">Spies and whiteboards can be zero.</span></p></div>
+<button class="p" onclick="go('setup')">Start Game</button><button onclick="go('rules')">How to Play</button><button onclick="go('settings')">Settings</button>`,
+rules:()=>`<h2>How to Play</h2><div class="card"><ol style="padding-left:20px;line-height:1.9"><li>Each player privately views their role in turn.</li><li>Civilians and spies see different (but related) words.</li><li>The whiteboard gets no word at all.</li><li>Take turns describing your word without saying it.</li><li>Discuss and vote to find the spy.</li><li>Spies blend in; whiteboards bluff using the clues.</li></ol><p class="mu">Spies and whiteboards can each be 0.</p></div><div class="ft">${back("home")}</div>`,
+settings:()=>`<h2>Settings</h2><div class="card">
+<div class="row"><span>Vibration</span><button onclick="cfg.vib=!cfg.vib;save();render()">${cfg.vib?"On":"Off"}</button></div>
+<div class="row"><span>Whiteboard wins if voted out</span><button onclick="cfg.wbWin=!cfg.wbWin;save();render()">${cfg.wbWin?"On":"Off"}</button></div>
+<div class="row"><span>Whiteboard joins civilians</span><button onclick="cfg.wbCiv=!cfg.wbCiv;save();render()">${cfg.wbCiv?"On":"Off"}</button></div>
+<div class="row"><span>Discussion timer</span><div class="chips">${[30,60,90,120].map(t=>`<button class="${cfg.timer===t?"on":""}" onclick="cfg.timer=${t};save();render()">${t}s</button>`).join("")}</div></div>
+<div class="row"><span>Theme</span><div class="chips">${[["auto","Auto"],["dark","Dark"],["light","Light"]].map(([v,l])=>`<button class="${cfg.dark===v?"on":""}" onclick="cfg.dark='${v}';save();render()">${l}</button>`).join("")}</div></div></div><div class="ft">${back("home")}</div>`,
+setup:()=>{const civ=S.n-S.spy-S.wb;return `<h2>Players</h2><div class="card">
+<div class="row"><span>Players</span>${stepper("n",3,20)}</div><div class="row"><span>Spies</span>${stepper("spy",0,20)}</div><div class="row"><span>Whiteboards</span>${stepper("wb",0,20)}</div></div>
+<div class="card c"><div style="font-size:20px">👤 Civilians ${civ} &nbsp; 🕵️ Spies ${S.spy} &nbsp; ⬜ Whiteboards ${S.wb}</div>
+<p class="mu">${S.spy===0?"No spy this game. ":""}${S.wb===0?"No whiteboard this game.":""}</p></div>
+<div class="ft"><button class="p" onclick="go('words')">Next: Words</button>${back("home")}</div>`},
+words:()=>`<h2>Words</h2><div class="card"><div class="chips">${chip("mode","random","Random")}${chip("mode","custom","Custom words")}</div>
+${S.mode==="random"?`<p class="mu">Difficulty</p><div class="chips">${chip("diff","e","Easy")}${chip("diff","m","Medium")}${chip("diff","h","Hard")}${chip("diff","mixed","Mixed")}</div>
+<p class="c mu" style="margin-top:16px">🔒 A random word pair is picked when the game starts. Nobody sees it in advance, including the host.</p>`
+:`<p class="mu">Type your own pair for this game only (Mandarin words work best).</p><input id="ca" placeholder="Civilian word · 平民词" value="${S.cA}" oninput="S.cA=this.value"><input id="cb" placeholder="Spy word · 卧底词" value="${S.cB}" oninput="S.cB=this.value"><div class="row"><button onclick="[S.cA,S.cB]=[S.cB,S.cA];render()">⇄ Swap</button><button onclick="S.cA=S.cB='';render()">Clear</button></div>`}
+</div><div class="err">${S.err}</div>
+<div class="ft"><button class="p" onclick="begin()">Deal Roles</button>${back("setup")}</div>`,
+pass:()=>`<div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px" class="c"><div class="mu">${S.i+1} / ${S.n}</div><h1 style="font-size:34px">Pass the phone to<br>${S.players[S.i].name}</h1><p class="mu">Make sure only you can see the screen, then tap below.</p></div><button class="p" onclick="vib();go('reveal')">Show My Role</button>`,
+reveal:()=>{const p=S.players[S.i],w=wordOf(p.role),cl={civilian:"r-civ",spy:"r-spy",whiteboard:"r-wb"}[p.role];
+ return `<div class="role ${cl}"><div style="font-size:56px">${RI[p.role]}</div><h1 style="font-size:36px;margin-bottom:0">You are ${p.role==="spy"?"a Spy":p.role==="civilian"?"a Civilian":"the Whiteboard"}</h1><div style="opacity:.8">你是${RZ[p.role]}</div>
+${w?`<div style="margin-top:18px">Your word</div><div style="opacity:.8;font-size:14px">你的词语是</div><div class="big">${w}</div>`:`<div class="big" style="font-size:28px;margin-bottom:0">You have no word</div><div style="opacity:.8">你没有词语</div><p>Listen closely and bluff your way through.</p>`}</div>
+<p class="c mu">Memorize it, then hide the screen.</p><div class="ft"><button class="p" onclick="hidePass()">Hide &amp; Pass On</button></div>`},
+discuss:()=>`<h2 class="c">Round ${S.round}</h2><div class="card c"><p>${S.round===1?"Everyone is ready. Describe your word without saying it.":"Remaining players, keep describing."}</p>
+<div class="big" id="tm" style="font-size:96px">${S.left||cfg.timer}</div><div class="bar"><i id="tb" style="width:${(S.left||cfg.timer)/cfg.timer*100}%"></i></div></div>
+<div class="grid">${S.timerId&&S.left>0?(S.paused?`<button onclick="S.paused=false;render()">Resume</button>`:`<button onclick="S.paused=true;render()">Pause</button>`):`<button onclick="startTimer()">Start Timer</button>`}<button onclick="clearInterval(S.timerId);S.timerId=0;S.left=0;S.paused=true;go('vote')">End Round</button></div>
+<p class="c mu">Still in: ${alive().map(p=>p.id).join(", ")}</p><div class="ft"><button class="p" onclick="clearInterval(S.timerId);S.timerId=0;go('vote')">Go to Voting</button></div>`,
+vote:()=>`<h2 class="c">Vote</h2><p class="c mu">Tap the player with the most votes</p><div class="grid">${S.players.map((p,k)=>p.out?"":`<button class="${S.sel===k?"sel":""}" onclick="S.sel=${k};render()">${p.name}</button>`).join("")}</div>
+<div class="ft"><button class="p" ${S.sel===null?"disabled style='opacity:.4'":""} onclick="S.sel!==null&&go('elim0')">Eliminate</button></div>`,
+elim0:()=>`<div class="c" style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:14px"><div class="mu">Eliminated this round</div><h1>${S.players[S.sel].name}</h1></div><button class="p" onclick="reveal()">Reveal Role</button>`,
+elim:()=>`<div class="c" style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:10px"><h2>${S.last.name} was</h2><div style="font-size:64px">${RI[S.last.role]}</div><h1 style="margin-bottom:0">${RN[S.last.role]}</h1><div class="mu">${RZ[S.last.role]}</div></div><button class="p" onclick="next()">Continue</button>`,
+over:()=>`<div class="c" style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:12px"><div style="font-size:64px">🏆</div><h2>${S.over}</h2><div class="card">${S.showWords?`Civilian word: ${S.secret.A}<br>Spy word: ${S.spy?S.secret.B:"—"}`:`<button onclick="S.showWords=true;render()">Show Words</button>`}<div style="margin-top:10px;line-height:1.9">${S.players.map(p=>`${p.name} ${RI[p.role]} ${RN[p.role]}`).join("<br>")}</div></div></div>
+<button class="p" onclick="begin()">Play Again (reshuffle)</button><button onclick="go('home')">Home</button>`
+};
+function hidePass(){S.i++;if(S.i>=S.n){S.left=0;S.timerId=0;go("discuss")}else go("pass")}
+history.pushState(null,"",location.href);addEventListener("popstate",()=>history.pushState(null,"",location.href));
+render();
+</script></body></html>
